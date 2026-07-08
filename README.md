@@ -1,0 +1,2 @@
+# Panca
+Server benchmarking tool.
