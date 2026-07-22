@@ -110,5 +110,3 @@ Output:
 [llamacpp][global] Total tokens: 565
 ----Snapshot 12----
 ```
-
-

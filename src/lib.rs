@@ -1,2 +1,2 @@
-pub mod metrics;
 pub mod cli;
+pub mod metrics;

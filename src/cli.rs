@@ -81,7 +81,9 @@ impl Panca {
         for plugin in &cli.plugins {
             match plugin.to_ascii_lowercase().as_str() {
                 "basic" => global_metrics.push(Box::new(GlobalBasicMetrics::new(cli.threads))),
-                "llamacpp" => global_metrics.push(Box::new(GlobalLlamaCppMetrics::new(cli.threads))),
+                "llamacpp" => {
+                    global_metrics.push(Box::new(GlobalLlamaCppMetrics::new(cli.threads)))
+                }
                 other => return Err(anyhow!("Plugin {} not available.", other)),
             }
         }

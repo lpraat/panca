@@ -7,7 +7,7 @@ use json::JsonValue;
 
 use crate::metrics::{
     interface::{GlobalMetricExt, LocalMetricExt},
-    utils::{update_running_mean},
+    utils::update_running_mean,
 };
 
 pub struct GlobalBasicMetrics {
@@ -52,9 +52,18 @@ impl GlobalMetricExt for GlobalBasicMetrics {
                 );
                 self.display_local_stat(
                     thread_idx,
-                    &format!("Mean Response time (ms): {:.04}", local.mean_response_time * 1e3),
+                    &format!(
+                        "Mean Response time (ms): {:.04}",
+                        local.mean_response_time * 1e3
+                    ),
                 );
-                self.display_local_stat(thread_idx, &format!("Total requests sent: {}", local.n_successes+local.n_failures));
+                self.display_local_stat(
+                    thread_idx,
+                    &format!(
+                        "Total requests sent: {}",
+                        local.n_successes + local.n_failures
+                    ),
+                );
                 self.display_local_stat(
                     thread_idx,
                     &format!(
@@ -83,7 +92,10 @@ impl GlobalMetricExt for GlobalBasicMetrics {
             "Mean Response Time (ms): {:.04}",
             g_mean_response_time * 1e3
         ));
-        self.display_global_stat(&format!("Total requests sent: {}", g_n_successes+g_n_failures));
+        self.display_global_stat(&format!(
+            "Total requests sent: {}",
+            g_n_successes + g_n_failures
+        ));
         self.display_global_stat(&format!(
             "Errors: {:.02}% ({}/{})",
             (g_n_failures as f64 / (g_n_successes as f64 + g_n_failures as f64)) * 100.0,
