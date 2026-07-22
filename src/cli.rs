@@ -40,7 +40,7 @@ pub struct Cli {
     #[arg(short, long, default_value_t = 10)]
     pub concurrent_requests: u64,
 
-    /// Total number of requests sent by each thread.
+    /// Total number of requests sent by each thread. If not specified, requests are sent indefinitely.
     #[arg(short, long)]
     pub requests: Option<u64>,
 
@@ -52,15 +52,15 @@ pub struct Cli {
     #[arg(long)]
     pub json: Option<String>,
 
-    /// How often statistics are updated (in seconds).
+    /// How often metric are updated (in seconds).
     #[arg(long, default_value_t = 1.0)]
-    pub stats_interval_seconds: f64,
+    pub metrics_interval_seconds: f64,
 
-    /// How often statistics are displayed to stdout (in seconds).
+    /// How often metrics are displayed to stdout (in seconds).
     #[arg(long, default_value_t = 1.0)]
     pub display_interval_seconds: f64,
 
-    /// Metrics plugin (e.g., basic,llamacpp).
+    /// Metrics plugins (e.g., basic,llamacpp).
     #[arg(long, value_delimiter = ',', default_values=["basic"])]
     pub plugins: Vec<String>,
 }
@@ -204,7 +204,7 @@ impl Panca {
                         let curr_snapshot = Instant::now();
 
                         if (curr_snapshot - last_snapshot
-                            > Duration::from_secs_f64(cli_ref.stats_interval_seconds))
+                            > Duration::from_secs_f64(cli_ref.metrics_interval_seconds))
                             || is_thread_done
                         {
                             for metric in local_metrics.iter_mut() {
@@ -216,7 +216,7 @@ impl Panca {
                             }
 
                             if is_thread_done {
-                                // Note: we signal done after updating global stats
+                                // Note: we signal done after updating global metrics
                                 // And make sure that updated metrics are visible to the display thread before the final display (Release + Acquire)
                                 done_counter_ref.fetch_add(1, std::sync::atomic::Ordering::Release);
                             }
