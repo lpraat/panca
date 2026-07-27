@@ -22,7 +22,6 @@ pub enum HttpMethod {
 
 // TODO:
 // - header
-// - std, confidence interval
 // - log bench data to file for offline analysis
 
 /// Server benchmarking tool

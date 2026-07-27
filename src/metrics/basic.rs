@@ -7,7 +7,7 @@ use json::JsonValue;
 
 use crate::metrics::{
     interface::{GlobalMetricExt, LocalMetricExt},
-    utils::update_running_mean,
+    utils::RunningStats,
 };
 
 pub struct GlobalBasicMetrics {
@@ -39,23 +39,19 @@ impl GlobalMetricExt for GlobalBasicMetrics {
     fn display(&self) {
         let mut g_n_successes: u64 = 0;
         let mut g_n_failures: u64 = 0;
-        let mut g_mean_requests_per_second: f64 = 0.0;
-        let mut g_mean_response_time: f64 = 0.0;
-        let mut g_n_snapshots: u64 = 0;
+        let mut g_requests_per_second = RunningStats::new();
+        let mut g_response_time = RunningStats::new();
 
         for (thread_idx, local_mutex) in self.locals.iter().enumerate() {
             {
                 let local = local_mutex.lock().unwrap();
                 self.display_local_stat(
                     thread_idx,
-                    &format!("Mean Req/s: {:.04}", local.mean_requests_per_second),
+                    &local.requests_per_second.display_str("Req/s", 1.0, 4),
                 );
                 self.display_local_stat(
                     thread_idx,
-                    &format!(
-                        "Mean Response time (ms): {:.04}",
-                        local.mean_response_time * 1e3
-                    ),
+                    &local.respone_time.display_str("Response time (ms)", 1e3, 4),
                 );
                 self.display_local_stat(
                     thread_idx,
@@ -73,25 +69,20 @@ impl GlobalMetricExt for GlobalBasicMetrics {
                         local.n_successes + local.n_failures
                     ),
                 );
-                g_mean_requests_per_second +=
-                    local.mean_requests_per_second * local.n_snapshot as f64;
                 g_n_successes += local.n_successes;
                 g_n_failures += local.n_failures;
-                g_n_snapshots += local.n_snapshot;
-                g_mean_response_time += local.mean_response_time * local.n_successes as f64;
+                g_requests_per_second.merge_with(&local.requests_per_second);
+                g_response_time.merge_with(&local.respone_time);
             }
         }
-        g_mean_response_time /= g_n_successes as f64;
-        g_mean_requests_per_second /= g_n_snapshots as f64;
 
-        self.display_global_stat(&format!(
-            "Mean Req/s: {:.04}",
-            g_mean_requests_per_second * self.locals.len() as f64
+        self.display_global_stat(&g_requests_per_second.display_str_global_sum(
+            "Req/s",
+            self.locals.len(),
+            1.0,
+            4,
         ));
-        self.display_global_stat(&format!(
-            "Mean Response Time (ms): {:.04}",
-            g_mean_response_time * 1e3
-        ));
+        self.display_global_stat(&g_response_time.display_str("Response time (ms)", 1e3, 4));
         self.display_global_stat(&format!(
             "Total requests sent: {}",
             g_n_successes + g_n_failures
@@ -110,9 +101,8 @@ pub struct BasicMetricsState {
     n_requests: u64,
     n_successes: u64,
     n_failures: u64,
-    n_snapshot: u64,
-    mean_requests_per_second: f64,
-    mean_response_time: f64,
+    requests_per_second: RunningStats<f64, u64>,
+    respone_time: RunningStats<f64, u64>,
 }
 
 impl BasicMetricsState {
@@ -129,12 +119,9 @@ pub struct LocalBasicMetrics {
 
 impl LocalMetricExt for LocalBasicMetrics {
     fn on_success_response(&mut self, _: &Option<JsonValue>, response_time: f64) {
-        update_running_mean(
-            &mut self.state.mean_response_time,
-            &mut self.state.n_requests,
-            response_time,
-        );
+        self.state.n_requests += 1;
         self.state.n_successes += 1;
+        self.state.respone_time.add_sample(response_time);
     }
 
     fn on_error_response(&mut self) {
@@ -143,11 +130,9 @@ impl LocalMetricExt for LocalBasicMetrics {
 
     fn on_snapshot(&mut self, interval: Duration) {
         let requests_per_second = self.requests_per_second(interval);
-        update_running_mean(
-            &mut self.state.mean_requests_per_second,
-            &mut self.state.n_snapshot,
-            requests_per_second,
-        );
+        self.state
+            .requests_per_second
+            .add_sample(requests_per_second);
         self.state.n_requests = 0;
     }
 

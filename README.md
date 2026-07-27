@@ -39,32 +39,32 @@ cargo run --release -- http://127.0.0.1:54860/v1/models -t 5 -c 2
 ```
 Output:
 ```bash
-----Snapshot 5----
-[basic][thread=0] Mean Req/s: 19280.8436
-[basic][thread=0] Mean Response time (ms): 0.0979
-[basic][thread=0] Total requests sent: 77126
-[basic][thread=0] Errors: 0% (0/77126)
-[basic][thread=1] Mean Req/s: 19278.0248
-[basic][thread=1] Mean Response time (ms): 0.0978
-[basic][thread=1] Total requests sent: 77114
-[basic][thread=1] Errors: 0% (0/77114)
-[basic][thread=2] Mean Req/s: 19286.6074
-[basic][thread=2] Mean Response time (ms): 0.0978
-[basic][thread=2] Total requests sent: 77149
-[basic][thread=2] Errors: 0% (0/77149)
-[basic][thread=3] Mean Req/s: 19303.6245
-[basic][thread=3] Mean Response time (ms): 0.0978
-[basic][thread=3] Total requests sent: 77217
-[basic][thread=3] Errors: 0% (0/77217)
-[basic][thread=4] Mean Req/s: 19312.6944
-[basic][thread=4] Mean Response time (ms): 0.0977
-[basic][thread=4] Total requests sent: 77253
-[basic][thread=4] Errors: 0% (0/77253)
-[basic][global] Mean Req/s: 96461.7948
-[basic][global] Mean Response Time (ms): 0.0978
-[basic][global] Total requests sent: 385859
-[basic][global] Errors: 0.00% (0/385859)
-----Snapshot 5----
+----Snapshot 6----
+[basic][thread=0] Req/s: 19178.7062 ± 360.1154 [min=18449.7640, max=19439.7805]
+[basic][thread=0] Response time (ms): 0.0992 ± 0.0001 [min=0.0553, max=2.3611]
+[basic][thread=0] Total requests sent: 95895
+[basic][thread=0] Errors: 0% (0/95895)
+[basic][thread=1] Req/s: 19192.8991 ± 369.3096 [min=18445.8432, max=19465.3398]
+[basic][thread=1] Response time (ms): 0.0992 ± 0.0001 [min=0.0554, max=2.3415]
+[basic][thread=1] Total requests sent: 95966
+[basic][thread=1] Errors: 0% (0/95966)
+[basic][thread=2] Req/s: 19216.7853 ± 348.3238 [min=18508.1579, max=19435.7765]
+[basic][thread=2] Response time (ms): 0.0989 ± 0.0001 [min=0.0520, max=2.2262]
+[basic][thread=2] Total requests sent: 96087
+[basic][thread=2] Errors: 0% (0/96087)
+[basic][thread=3] Req/s: 19181.9794 ± 346.8607 [min=18476.8707, max=19412.6239]
+[basic][thread=3] Response time (ms): 0.0992 ± 0.0001 [min=0.0535, max=2.2072]
+[basic][thread=3] Total requests sent: 95911
+[basic][thread=3] Errors: 0% (0/95911)
+[basic][thread=4] Req/s: 19169.2204 ± 377.5314 [min=18401.2333, max=19416.2250]
+[basic][thread=4] Response time (ms): 0.0992 ± 0.0001 [min=0.0568, max=2.2358]
+[basic][thread=4] Total requests sent: 95849
+[basic][thread=4] Errors: 0% (0/95849)
+[basic][global] Req/s: 95939.5905 ± 736.8399
+[basic][global] Response time (ms): 0.0992 ± 0.0001 [min=0.0520, max=2.3611]
+[basic][global] Total requests sent: 479708
+[basic][global] Errors: 0.00% (0/479708)
+----Snapshot 6----
 ```
 
 ### llm bench (llamacpp)
@@ -75,38 +75,38 @@ cargo run --release -- http://localhost:58969/v1/chat/completions -m post --json
 Output:
 ```bash
 ----Snapshot 12----
-[basic][thread=0] Mean Req/s: 0.4064
-[basic][thread=0] Mean Response time (ms): 5123.7338
+[basic][thread=0] Req/s: 0.4774 ± 0.2212 [min=0.2613, max=0.6420]
+[basic][thread=0] Response time (ms): 3941.2198 ± 608.3542 [min=3115.4238, max=4494.4673]
 [basic][thread=0] Total requests sent: 4
 [basic][thread=0] Errors: 0% (0/4)
-[basic][thread=1] Mean Req/s: 0.6504
-[basic][thread=1] Mean Response time (ms): 3899.6921
-[basic][thread=1] Total requests sent: 3
-[basic][thread=1] Errors: 0% (0/3)
-[basic][global] Mean Req/s: 0.9755
-[basic][global] Mean Response Time (ms): 4599.1445
-[basic][global] Total requests sent: 7
-[basic][global] Errors: 0.00% (0/7)
-[llamacpp][thread=0] Mean Prompt Tok/s: 96.1152
-[llamacpp][thread=0] Mean Completion Tok/s: 48.6212
+[basic][thread=1] Req/s: 0.4972 ± 0.2589 [min=0.3104, max=0.8799]
+[basic][thread=1] Response time (ms): 3946.8388 ± 1252.7297 [min=2142.2233, max=5146.3762]
+[basic][thread=1] Total requests sent: 4
+[basic][thread=1] Errors: 0% (0/4)
+[basic][global] Req/s: 0.9775 ± 0.3237
+[basic][global] Response time (ms): 3944.0293 ± 644.6671 [min=2142.2233, max=5146.3762]
+[basic][global] Total requests sent: 8
+[basic][global] Errors: 0.00% (0/8)
+[llamacpp][thread=0] Prompt Tok/s: 96.1411 ± 0.6468 [min=95.1950, max=96.6254]
+[llamacpp][thread=0] Completion Tok/s: 48.6428 ± 0.5147 [min=48.1265, max=49.1820]
 [llamacpp][thread=0] Prompt Tok/req: 18.0000
-[llamacpp][thread=0] Completion Tok/req: 73.5000
+[llamacpp][thread=0] Completion Tok/req: 57.0000
 [llamacpp][thread=0] Prompt tokens: 72
-[llamacpp][thread=0] Completion tokens: 294
-[llamacpp][thread=0] Total tokens: 366
-[llamacpp][thread=1] Mean Prompt Tok/s: 77.4732
-[llamacpp][thread=1] Mean Completion Tok/s: 49.0376
+[llamacpp][thread=0] Completion tokens: 228
+[llamacpp][thread=0] Total tokens: 300
+[llamacpp][thread=1] Prompt Tok/s: 72.2912 ± 45.4444 [min=2.7508, max=96.3206]
+[llamacpp][thread=1] Completion Tok/s: 48.9200 ± 0.3387 [min=48.4128, max=49.1703]
 [llamacpp][thread=1] Prompt Tok/req: 18.0000
-[llamacpp][thread=1] Completion Tok/req: 48.3333
-[llamacpp][thread=1] Prompt tokens: 54
-[llamacpp][thread=1] Completion tokens: 145
-[llamacpp][thread=1] Total tokens: 199
-[llamacpp][global] Mean Prompt Tok/s: 176.2515
-[llamacpp][global] Mean Completion Tok/s: 97.5993
+[llamacpp][thread=1] Completion Tok/req: 35.7500
+[llamacpp][thread=1] Prompt tokens: 72
+[llamacpp][thread=1] Completion tokens: 143
+[llamacpp][thread=1] Total tokens: 215
+[llamacpp][global] Prompt Tok/s: 168.4323 ± 45.6365
+[llamacpp][global] Completion Tok/s: 97.5628 ± 0.6063
 [llamacpp][global] Prompt Tok/req: 18.0000
-[llamacpp][global] Completion Tok/req: 62.7143
-[llamacpp][global] Prompt tokens: 126
-[llamacpp][global] Completion tokens: 439
-[llamacpp][global] Total tokens: 565
+[llamacpp][global] Completion Tok/req: 46.3750
+[llamacpp][global] Prompt tokens: 144
+[llamacpp][global] Completion tokens: 371
+[llamacpp][global] Total tokens: 515
 ----Snapshot 12----
 ```

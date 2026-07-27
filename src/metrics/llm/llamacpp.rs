@@ -3,7 +3,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::metrics::interface::{GlobalMetricExt, LocalMetricExt};
-use crate::metrics::utils::running_mean;
+use crate::metrics::utils::RunningStats;
 use json::JsonValue;
 
 pub struct GlobalLlamaCppMetrics {
@@ -26,8 +26,8 @@ impl GlobalMetricExt for GlobalLlamaCppMetrics {
     }
 
     fn display(&self) {
-        let mut g_mean_prompt_tokens_per_second: f64 = 0.0;
-        let mut g_mean_completion_tokens_per_second: f64 = 0.0;
+        let mut g_prompt_tokens_per_second = RunningStats::new();
+        let mut g_completion_tokens_per_second = RunningStats::new();
         let mut g_n_successes: u64 = 0;
         let mut g_n_prompt_tokens: u64 = 0;
         let mut g_n_completion_tokens: u64 = 0;
@@ -39,17 +39,15 @@ impl GlobalMetricExt for GlobalLlamaCppMetrics {
                 if local.n_successes > 0 {
                     self.display_local_stat(
                         thread_idx,
-                        &format!(
-                            "Mean Prompt Tok/s: {:.04}",
-                            local.mean_prompt_tokens_per_second
-                        ),
+                        &local
+                            .prompt_tokens_per_second
+                            .display_str("Prompt Tok/s", 1.0, 4),
                     );
                     self.display_local_stat(
                         thread_idx,
-                        &format!(
-                            "Mean Completion Tok/s: {:.04}",
-                            local.mean_completion_tokens_per_second
-                        ),
+                        &local
+                            .completion_tokens_per_second
+                            .display_str("Completion Tok/s", 1.0, 4),
                     );
                     self.display_local_stat(
                         thread_idx,
@@ -82,24 +80,21 @@ impl GlobalMetricExt for GlobalLlamaCppMetrics {
                 g_n_prompt_tokens += local.n_prompt_tokens;
                 g_n_completion_tokens += local.n_completion_tokens;
                 g_n_total_tokens += local.n_total_tokens;
-                g_mean_prompt_tokens_per_second +=
-                    local.mean_prompt_tokens_per_second * local.n_successes as f64;
-                g_mean_completion_tokens_per_second +=
-                    local.mean_completion_tokens_per_second * local.n_successes as f64;
+                g_prompt_tokens_per_second.merge_with(&local.prompt_tokens_per_second);
+                g_completion_tokens_per_second.merge_with(&local.completion_tokens_per_second);
             }
         }
-        if g_n_successes > 0 {
-            g_mean_prompt_tokens_per_second /= g_n_successes as f64;
-            g_mean_completion_tokens_per_second /= g_n_successes as f64;
-        }
-
-        self.display_global_stat(&format!(
-            "Mean Prompt Tok/s: {:.04}",
-            g_mean_prompt_tokens_per_second * self.locals.len() as f64
+        self.display_global_stat(&g_prompt_tokens_per_second.display_str_global_sum(
+            "Prompt Tok/s",
+            self.locals.len(),
+            1.0,
+            4,
         ));
-        self.display_global_stat(&format!(
-            "Mean Completion Tok/s: {:.04}",
-            g_mean_completion_tokens_per_second * self.locals.len() as f64
+        self.display_global_stat(&g_completion_tokens_per_second.display_str_global_sum(
+            "Completion Tok/s",
+            self.locals.len(),
+            1.0,
+            4,
         ));
         if g_n_successes > 0 {
             self.display_global_stat(&format!(
@@ -130,8 +125,8 @@ struct Llamacpp {
     n_total_tokens: u64,
     n_completion_tokens: u64,
     n_prompt_tokens: u64,
-    mean_completion_tokens_per_second: f64,
-    mean_prompt_tokens_per_second: f64,
+    completion_tokens_per_second: RunningStats<f64, u64>,
+    prompt_tokens_per_second: RunningStats<f64, u64>,
 }
 
 struct LocalLlamacppMetrics {
@@ -147,18 +142,14 @@ impl LocalMetricExt for LocalLlamacppMetrics {
         let usage = &json_response.as_ref().unwrap()["usage"];
         let prompt_tokens = usage["prompt_tokens"].as_u64().unwrap();
         let completion_tokens = usage["completion_tokens"].as_u64().unwrap();
-
         let timings = &json_response.as_ref().unwrap()["timings"];
-        self.state.mean_prompt_tokens_per_second = running_mean(
-            self.state.mean_prompt_tokens_per_second,
-            self.state.n_successes,
-            timings["prompt_per_second"].as_f64().unwrap(),
-        );
-        self.state.mean_completion_tokens_per_second = running_mean(
-            self.state.mean_completion_tokens_per_second,
-            self.state.n_successes,
-            timings["predicted_per_second"].as_f64().unwrap(),
-        );
+
+        self.state
+            .prompt_tokens_per_second
+            .add_sample(timings["prompt_per_second"].as_f64().unwrap());
+        self.state
+            .completion_tokens_per_second
+            .add_sample(timings["predicted_per_second"].as_f64().unwrap());
         self.state.n_successes += 1;
         self.state.n_total_tokens += prompt_tokens + completion_tokens;
         self.state.n_prompt_tokens += prompt_tokens;
